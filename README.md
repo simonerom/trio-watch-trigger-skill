@@ -1,61 +1,61 @@
 # trio-watch-trigger-skill
 
-Skill + script per usare **trio-core** con monitoraggio continuo stream (RTSP) e trigger di azioni quando una condizione è vera.
+Skill + script to run **trio-core** for continuous stream monitoring (RTSP) and trigger actions when a condition is true.
 
 Repository: https://github.com/simonerom/trio-watch-trigger-skill
 
 ---
 
-## A chi serve
+## Who this is for
 
-Se hai già OpenClaw installato e vuoi:
+Use this if you already have OpenClaw installed and want to:
 
-1. monitorare una camera/stream con TrioCore
-2. descrivere una condizione in linguaggio naturale (es. “c’è una persona alla porta?”)
-3. eseguire un’azione quando scatta un alert
-
----
-
-## Prerequisiti minimi
-
-- macOS su Apple Silicon (M1/M2/M3/M4)
-- OpenClaw già installato
-- accesso shell sul Mac
-- URL RTSP della camera (o stream equivalente)
+1. monitor a camera/stream with TrioCore
+2. define natural-language conditions (for example: “Is there a person at the door?”)
+3. run an action when an alert fires
 
 ---
 
-## Installazione da zero
+## Minimum requirements
 
-### 1) Installa trio-core
+- macOS on Apple Silicon (M1/M2/M3/M4)
+- OpenClaw already installed
+- shell access on the Mac
+- RTSP URL for your camera (or equivalent stream source)
+
+---
+
+## Fresh install (from zero)
+
+### 1) Install trio-core
 
 ```bash
 pipx install 'trio-core[mlx,webcam,claw]'
 ```
 
-### 2) Installa ffmpeg
+### 2) Install ffmpeg
 
 ```bash
 brew install ffmpeg
 ```
 
-### 3) Installa dipendenza script watcher
+### 3) Install watcher script dependency
 
 ```bash
 python3 -m pip install httpx
 ```
 
-### 4) Verifica ambiente
+### 4) Verify environment
 
 ```bash
 trio doctor
 ```
 
-Se `trio doctor` fallisce, risolvi prima le dipendenze mancanti.
+If `trio doctor` fails, fix missing dependencies first.
 
 ---
 
-## Clona questo repo
+## Clone this repository
 
 ```bash
 git clone https://github.com/simonerom/trio-watch-trigger-skill.git
@@ -64,15 +64,15 @@ cd trio-watch-trigger-skill
 
 ---
 
-## Uso base (2 terminali)
+## Basic usage (2 terminals)
 
-## Terminale A — avvia server TrioCore
+## Terminal A — start TrioCore API server
 
 ```bash
 trio serve --host 127.0.0.1 --port 8000
 ```
 
-## Terminale B — avvia watcher + trigger
+## Terminal B — start watcher + trigger
 
 ```bash
 python3 scripts/trio_watch_trigger.py \
@@ -86,19 +86,19 @@ python3 scripts/trio_watch_trigger.py \
   --action-cmd 'echo "[ALERT] $TRIO_ALERT_NAMES :: $TRIO_ALERT_ANSWERS"'
 ```
 
-Quando Trio emette evento `alert`, lo script esegue `--action-cmd` (max una volta ogni `--cooldown` secondi).
+When Trio emits an `alert` event, the script runs `--action-cmd` (at most once every `--cooldown` seconds).
 
 ---
 
-## Variabili disponibili nell’action
+## Environment variables exposed to the action
 
-Quando scatta un alert, lo script passa queste env vars al comando:
+When an alert fires, the script exports these env vars to your command:
 
-- `TRIO_ALERT_JSON` → payload JSON completo dell’alert
-- `TRIO_ALERT_NAMES` → ID condizioni triggerate (CSV)
-- `TRIO_ALERT_ANSWERS` → sintesi risposte modello
+- `TRIO_ALERT_JSON` → full alert JSON payload
+- `TRIO_ALERT_NAMES` → triggered condition IDs (CSV)
+- `TRIO_ALERT_ANSWERS` → model answer summary
 
-Esempio salvataggio log:
+Example JSONL logging action:
 
 ```bash
 --action-cmd 'mkdir -p ~/trio-alerts && echo "$TRIO_ALERT_JSON" >> ~/trio-alerts/alerts.jsonl'
@@ -106,31 +106,31 @@ Esempio salvataggio log:
 
 ---
 
-## Integrazione OpenClaw (pattern consigliato)
+## OpenClaw integration (recommended pattern)
 
-In OpenClaw, quando arriva un alert:
+When an alert arrives in OpenClaw:
 
-1. invia notifica con `message`
-2. se urgente, aggiungi `nodes.notify`
-3. opzionale: acquisisci frame extra come evidenza
+1. send a notification with `message`
+2. if urgent, also call `nodes.notify`
+3. optionally capture extra evidence frames
 
-Mantieni sempre cooldown/idempotenza per evitare spam.
+Always keep actions idempotent and enforce cooldown to avoid flooding.
 
-### Esempio pronto: notifica Telegram via OpenClaw
+### Ready-to-use example: Telegram notification via OpenClaw
 
-Prerequisiti:
+Requirements:
 
-- gateway OpenClaw in esecuzione
-- plugin Telegram configurato
-- chat id destinatario (es. `459267437`)
+- OpenClaw gateway running
+- Telegram plugin configured
+- target chat id (for example `459267437`)
 
-Comando d’esempio (da usare in `--action-cmd`):
+Action command example (use inside `--action-cmd`):
 
 ```bash
 --action-cmd 'openclaw message send --channel telegram --target 459267437 --message "🚨 Trio alert: $TRIO_ALERT_NAMES | $TRIO_ALERT_ANSWERS"'
 ```
 
-Esempio completo watcher + Telegram:
+Full watcher + Telegram example:
 
 ```bash
 python3 scripts/trio_watch_trigger.py \
@@ -142,15 +142,15 @@ python3 scripts/trio_watch_trigger.py \
   --action-cmd 'openclaw message send --channel telegram --target 459267437 --message "🚨 Trio alert: $TRIO_ALERT_NAMES | $TRIO_ALERT_ANSWERS"'
 ```
 
-Note:
+Notes:
 
-- usa `--cooldown` per evitare flood
-- il comando manda una notifica solo quando Trio emette evento `alert`
-- per test rapido puoi sostituire temporaneamente con `echo ...`
+- keep `--cooldown` enabled to avoid alert flooding
+- notifications are sent only when Trio emits an `alert` event
+- for quick testing, temporarily replace action with `echo ...`
 
 ---
 
-## Troubleshooting rapido
+## Quick troubleshooting
 
 ### `ModuleNotFoundError: httpx`
 
@@ -158,31 +158,31 @@ Note:
 python3 -m pip install httpx
 ```
 
-### Trio non parte / dipendenze mancanti
+### Trio does not start / missing dependencies
 
 ```bash
 trio doctor
 ```
 
-### Non si connette al server
+### Cannot connect to server
 
-Assicurati che Terminale A sia attivo:
+Make sure Terminal A is running:
 
 ```bash
 trio serve --host 127.0.0.1 --port 8000
 ```
 
-### Nessun alert
+### No alerts firing
 
-- verifica URL RTSP
-- prova condizioni più semplici (es. `Is there a person?`)
-- aumenta FPS (es. `--fps 2`)
-- riduci risoluzione per più reattività
+- verify RTSP URL
+- try simpler conditions (for example `Is there a person?`)
+- increase FPS (for example `--fps 2`)
+- reduce resolution for faster cycles
 
 ---
 
-## File principali
+## Main files
 
-- `SKILL.md` → istruzioni skill OpenClaw
-- `scripts/trio_watch_trigger.py` → watcher SSE + trigger action
-- `references/trio-core-watch-reference.md` → riferimenti comandi/API verificati
+- `SKILL.md` → OpenClaw skill instructions
+- `scripts/trio_watch_trigger.py` → SSE watcher + action trigger
+- `references/trio-core-watch-reference.md` → verified command/API references
