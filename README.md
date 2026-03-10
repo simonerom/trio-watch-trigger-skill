@@ -116,6 +116,38 @@ In OpenClaw, quando arriva un alert:
 
 Mantieni sempre cooldown/idempotenza per evitare spam.
 
+### Esempio pronto: notifica Telegram via OpenClaw
+
+Prerequisiti:
+
+- gateway OpenClaw in esecuzione
+- plugin Telegram configurato
+- chat id destinatario (es. `459267437`)
+
+Comando d’esempio (da usare in `--action-cmd`):
+
+```bash
+--action-cmd 'openclaw message send --channel telegram --target 459267437 --message "🚨 Trio alert: $TRIO_ALERT_NAMES | $TRIO_ALERT_ANSWERS"'
+```
+
+Esempio completo watcher + Telegram:
+
+```bash
+python3 scripts/trio_watch_trigger.py \
+  --server http://127.0.0.1:8000 \
+  --source 'rtsp://admin:password@192.168.1.50:554/stream' \
+  --condition 'Is there a person at the door?' \
+  --fps 1 \
+  --cooldown 60 \
+  --action-cmd 'openclaw message send --channel telegram --target 459267437 --message "🚨 Trio alert: $TRIO_ALERT_NAMES | $TRIO_ALERT_ANSWERS"'
+```
+
+Note:
+
+- usa `--cooldown` per evitare flood
+- il comando manda una notifica solo quando Trio emette evento `alert`
+- per test rapido puoi sostituire temporaneamente con `echo ...`
+
 ---
 
 ## Troubleshooting rapido
