@@ -9,7 +9,7 @@ Verified from trio-core source (`src/trio_core/cli.py`, `README.md`).
 - `pipx install 'trio-core[mlx,webcam,claw]'`
 - `brew install ffmpeg`
 
-## Health
+## Health check
 
 - `trio doctor`
 

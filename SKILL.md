@@ -5,7 +5,7 @@ description: Install and run trio-core to monitor RTSP/live streams for natural-
 
 # trio-watch-trigger
 
-Use this skill to set up `trio-core`, start watch mode, and trigger actions when a condition becomes true.
+Use this skill to set up `trio-core`, start watch mode, and trigger actions when one or more conditions are met.
 
 ## 1) Install and sanity-check TrioCore
 
@@ -28,7 +28,7 @@ Use `trio serve` in a long-running session.
 trio serve --host 127.0.0.1 --port 8000
 ```
 
-## 3) Start stream watch with condition(s)
+## 3) Start stream watch with conditions
 
 Use `scripts/trio_watch_trigger.py` to subscribe to `/v1/watch` SSE events.
 
@@ -44,13 +44,13 @@ python3 scripts/trio_watch_trigger.py \
   --action-cmd 'echo "ALERT $(date)"'
 ```
 
-## 4) When alert fires, do follow-up action
+## 4) Run follow-up actions when an alert fires
 
-The watcher script executes `--action-cmd` once per cooldown window with alert data in env vars:
+The watcher script executes `--action-cmd` once per cooldown window and exports alert data through environment variables:
 
 - `TRIO_ALERT_JSON` (full alert JSON)
-- `TRIO_ALERT_NAMES` (comma-separated triggered condition ids)
-- `TRIO_ALERT_ANSWERS` (model answers summary)
+- `TRIO_ALERT_NAMES` (comma-separated triggered condition IDs)
+- `TRIO_ALERT_ANSWERS` (model answer summary)
 
 In OpenClaw flows, prefer these follow-ups:
 
