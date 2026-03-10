@@ -6,9 +6,13 @@ Repository: https://github.com/simonerom/trio-watch-trigger-skill
 
 ---
 
-## Who this is for
+## What this repository contains
 
-Use this if you already have OpenClaw installed and want to:
+- `SKILL.md` (AgentSkills/OpenClaw skill definition)
+- `scripts/trio_watch_trigger.py` (SSE watcher that executes an action on alert)
+- `references/trio-core-watch-reference.md` (verified Trio commands and API notes)
+
+Use this when you want to:
 
 1. monitor a camera/stream with TrioCore
 2. define natural-language conditions (for example: “Is there a person at the door?”)
@@ -16,36 +20,63 @@ Use this if you already have OpenClaw installed and want to:
 
 ---
 
-## Minimum requirements
+## Prerequisites
 
-- macOS on Apple Silicon (M1/M2/M3/M4)
+- macOS on Apple Silicon (M1/M2/M3/M4) for MLX-backed TrioCore
 - OpenClaw already installed
-- shell access on the Mac
+- shell access on the host machine
 - RTSP URL for your camera (or equivalent stream source)
 
 ---
 
-## Fresh install (from zero)
+## 1) Install the skill in OpenClaw
 
-### 1) Install trio-core
+OpenClaw supports AgentSkills folders from:
+
+- `<workspace>/skills` (per-workspace, highest precedence)
+- `~/.openclaw/skills` (shared local skills)
+
+### Option A (recommended): workspace-scoped install
+
+```bash
+mkdir -p ~/.openclaw/workspace/skills
+cd ~/.openclaw/workspace/skills
+git clone https://github.com/simonerom/trio-watch-trigger-skill.git trio-watch-trigger
+```
+
+### Option B: shared local install
+
+```bash
+mkdir -p ~/.openclaw/skills
+cd ~/.openclaw/skills
+git clone https://github.com/simonerom/trio-watch-trigger-skill.git trio-watch-trigger
+```
+
+After installing, start a new OpenClaw session (or reload skills) so the new skill is picked up.
+
+---
+
+## 2) Install runtime dependencies
+
+### Install trio-core
 
 ```bash
 pipx install 'trio-core[mlx,webcam,claw]'
 ```
 
-### 2) Install ffmpeg
+### Install ffmpeg
 
 ```bash
 brew install ffmpeg
 ```
 
-### 3) Install watcher script dependency
+### Install watcher script dependency
 
 ```bash
 python3 -m pip install httpx
 ```
 
-### 4) Verify environment
+### Verify environment
 
 ```bash
 trio doctor
@@ -55,24 +86,15 @@ If `trio doctor` fails, fix missing dependencies first.
 
 ---
 
-## Clone this repository
+## 3) Run it (2 terminals)
 
-```bash
-git clone https://github.com/simonerom/trio-watch-trigger-skill.git
-cd trio-watch-trigger-skill
-```
-
----
-
-## Basic usage (2 terminals)
-
-## Terminal A — start TrioCore API server
+### Terminal A — start TrioCore API server
 
 ```bash
 trio serve --host 127.0.0.1 --port 8000
 ```
 
-## Terminal B — start watcher + trigger
+### Terminal B — start watcher + trigger
 
 ```bash
 python3 scripts/trio_watch_trigger.py \
@@ -178,6 +200,21 @@ trio serve --host 127.0.0.1 --port 8000
 - try simpler conditions (for example `Is there a person?`)
 - increase FPS (for example `--fps 2`)
 - reduce resolution for faster cycles
+
+---
+
+## Compatibility with OpenClaw-like systems
+
+This repository follows the AgentSkills-style layout (`SKILL.md` + optional `scripts/` and `references/`).
+
+To use it in other compatible agent runtimes:
+
+1. Copy this folder into that runtime’s skills directory.
+2. Keep the folder name as `trio-watch-trigger` (recommended).
+3. Ensure the runtime can execute local scripts and shell commands.
+4. Install the same runtime dependencies listed above (`trio`, `ffmpeg`, `httpx`).
+
+If the runtime supports command/skill metadata filtering, keep `SKILL.md` as-is and only adjust paths if your platform requires a different skill root.
 
 ---
 
